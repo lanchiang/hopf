@@ -1,7 +1,7 @@
 package de.hpi.isg.feature.primarykey;
 
 import de.hpi.isg.constraints.*;
-import de.hpi.isg.target.UniqueColumnCombinationInstance;
+import de.hpi.isg.element.UniqueColumnCombinationInstance;
 
 import java.math.BigDecimal;
 import java.util.*;

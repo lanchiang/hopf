@@ -1,7 +1,7 @@
 package de.hpi.isg;
 
-import de.hpi.isg.target.InclusionDependencyInstance;
-import de.hpi.isg.target.UniqueColumnCombinationInstance;
+import de.hpi.isg.element.InclusionDependencyInstance;
+import de.hpi.isg.element.UniqueColumnCombinationInstance;
 
 import java.util.List;
 

@@ -1,7 +1,7 @@
 package de.hpi.isg.util;
 
 import de.hpi.isg.constraints.InclusionDependency;
-import de.hpi.isg.target.InclusionDependencyInstance;
+import de.hpi.isg.element.InclusionDependencyInstance;
 
 import java.util.Comparator;
 import java.util.HashSet;

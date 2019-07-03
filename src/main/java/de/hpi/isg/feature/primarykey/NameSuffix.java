@@ -1,8 +1,7 @@
 package de.hpi.isg.feature.primarykey;
 
 import de.hpi.isg.constraints.UniqueColumnCombination;
-import de.hpi.isg.target.Table;
-import de.hpi.isg.target.UniqueColumnCombinationInstance;
+import de.hpi.isg.element.UniqueColumnCombinationInstance;
 import de.hpi.isg.util.StringUtils;
 
 import java.util.*;

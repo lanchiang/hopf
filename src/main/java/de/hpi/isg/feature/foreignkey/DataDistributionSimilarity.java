@@ -5,8 +5,8 @@ import de.hpi.isg.binning.Binning;
 import de.hpi.isg.binning.BinningUtils;
 import de.hpi.isg.binning.EqualWidthBinning;
 import de.hpi.isg.constraints.InclusionDependency;
-import de.hpi.isg.target.ColumnCombination;
-import de.hpi.isg.target.InclusionDependencyInstance;
+import de.hpi.isg.element.ColumnCombination;
+import de.hpi.isg.element.InclusionDependencyInstance;
 
 import java.util.*;
 import java.util.stream.Collectors;

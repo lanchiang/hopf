@@ -1,10 +1,9 @@
 package de.hpi.isg.constraints;
 
-import de.hpi.isg.target.ColumnCombination;
+import de.hpi.isg.element.ColumnCombination;
 import de.hpi.isg.util.ReferenceUtils;
 import org.apache.commons.lang3.Validate;
 
-import java.util.Arrays;
 import java.util.Objects;
 
 /**

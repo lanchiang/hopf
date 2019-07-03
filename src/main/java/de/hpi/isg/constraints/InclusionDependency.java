@@ -1,6 +1,6 @@
 package de.hpi.isg.constraints;
 
-import de.hpi.isg.target.ColumnCombination;
+import de.hpi.isg.element.ColumnCombination;
 import org.apache.commons.lang3.Validate;
 
 /**

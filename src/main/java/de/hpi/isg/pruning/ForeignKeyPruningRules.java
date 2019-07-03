@@ -2,8 +2,8 @@ package de.hpi.isg.pruning;
 
 import de.hpi.isg.constraints.InclusionDependency;
 import de.hpi.isg.constraints.UniqueColumnCombination;
-import de.hpi.isg.target.InclusionDependencyInstance;
-import de.hpi.isg.target.UniqueColumnCombinationInstance;
+import de.hpi.isg.element.InclusionDependencyInstance;
+import de.hpi.isg.element.UniqueColumnCombinationInstance;
 
 import java.util.List;
 import java.util.Set;

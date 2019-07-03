@@ -1,8 +1,8 @@
 package de.hpi.isg.feature.primarykey;
 
-import de.hpi.isg.target.Column;
-import de.hpi.isg.target.Table;
-import de.hpi.isg.target.UniqueColumnCombinationInstance;
+import de.hpi.isg.element.Column;
+import de.hpi.isg.element.Table;
+import de.hpi.isg.element.UniqueColumnCombinationInstance;
 
 import java.util.*;
 import java.util.stream.Collectors;

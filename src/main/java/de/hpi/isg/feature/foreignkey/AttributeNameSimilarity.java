@@ -1,12 +1,11 @@
 package de.hpi.isg.feature.foreignkey;
 
-import de.hpi.isg.target.Column;
-import de.hpi.isg.target.InclusionDependencyInstance;
+import de.hpi.isg.element.Column;
+import de.hpi.isg.element.InclusionDependencyInstance;
 import de.hpi.isg.util.MathUtils;
 import de.hpi.isg.util.StringUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author Lan Jiang

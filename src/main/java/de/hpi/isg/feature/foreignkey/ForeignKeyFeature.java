@@ -1,8 +1,8 @@
 package de.hpi.isg.feature.foreignkey;
 
 import de.hpi.isg.constraints.InclusionDependency;
-import de.hpi.isg.target.ColumnCombination;
-import de.hpi.isg.target.InclusionDependencyInstance;
+import de.hpi.isg.element.ColumnCombination;
+import de.hpi.isg.element.InclusionDependencyInstance;
 
 import java.util.Collection;
 import java.util.HashMap;

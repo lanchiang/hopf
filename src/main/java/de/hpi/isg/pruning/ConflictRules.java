@@ -1,7 +1,7 @@
 package de.hpi.isg.pruning;
 
 import de.hpi.isg.constraints.InclusionDependency;
-import de.hpi.isg.target.InclusionDependencyInstance;
+import de.hpi.isg.element.InclusionDependencyInstance;
 
 import java.util.*;
 
