@@ -18,7 +18,7 @@ public class AttributeNameSimilarity extends ForeignKeyFeature {
 
     public AttributeNameSimilarity(List<Column> columns) {
         this.columnNameTokensByIndex = new HashMap<>();
-        columns.forEach(column -> columnNameTokensByIndex.putIfAbsent(column.getColumnId(), StringUtils.tokenrize(column.getColumnName())));
+        columns.forEach(column -> columnNameTokensByIndex.putIfAbsent(column.getColumnId(), StringUtils.tokenize(column.getColumnName())));
 
         this.tableIdByColumnId = new HashMap<>();
         columns.forEach(column -> tableIdByColumnId.putIfAbsent(column.getColumnId(), column.getTableId()));

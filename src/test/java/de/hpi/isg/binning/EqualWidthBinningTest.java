@@ -18,7 +18,7 @@ public class EqualWidthBinningTest {
 
         Binning binning = new EqualWidthBinning(data, 3);
         binning.createBins();
-        binning.assignData();
+        binning.assignData(data);
 
         Assert.assertEquals(binning.getNumOfBins(), 3);
         Assert.assertEquals(binning.getDataType(), DataTypeSniffer.DataType.Numeric);
@@ -38,7 +38,7 @@ public class EqualWidthBinningTest {
         String[] dataArray = new String[]{"abc","0.5","0.3", "name", "0.6", "test", "1.3, 3.3", "binning"};
         Collection<?> data = Arrays.asList(dataArray);
         Binning binning = new EqualWidthBinning(data, 2);
-        binning.assignData();
+        binning.assignData(data);
 
         Assert.assertEquals(binning.getNumOfBins(), 2);
         Assert.assertEquals(binning.getDataType(), DataTypeSniffer.DataType.Text);

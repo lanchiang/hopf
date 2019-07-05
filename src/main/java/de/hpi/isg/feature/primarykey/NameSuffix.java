@@ -1,6 +1,7 @@
 package de.hpi.isg.feature.primarykey;
 
 import de.hpi.isg.constraints.UniqueColumnCombination;
+import de.hpi.isg.element.Column;
 import de.hpi.isg.element.UniqueColumnCombinationInstance;
 import de.hpi.isg.util.StringUtils;
 
@@ -16,9 +17,9 @@ public class NameSuffix extends PrimaryKeyFeature {
 
     private Map<Integer, String> columnNameByColumnId;
 
-    public NameSuffix() {
+    public NameSuffix(List<Column> columns) {
         this.columnNameByColumnId = new HashMap<>();
-        // Todo: fill the columnNameByColumnId map
+        columns.forEach(column -> columnNameByColumnId.putIfAbsent(column.getColumnId(), column.getColumnName()));
     }
 
     @Override
@@ -30,7 +31,7 @@ public class NameSuffix extends PrimaryKeyFeature {
             double overall = 0;
             for (int columnId : columnIds) {
                 String columnName = columnNameByColumnId.get(columnId);
-                List<String> tokens = StringUtils.tokenrize(columnName);
+                List<String> tokens = StringUtils.tokenize(columnName);
                 double numLeftOverTokens = tokens.size();
                 double nameSuffixScore = 0.0;
                 if (endWithCount(columnName)) {

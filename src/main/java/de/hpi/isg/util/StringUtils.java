@@ -13,7 +13,7 @@ public class StringUtils {
      * @param columnName
      * @return
      */
-    public static List<String> tokenrize(String columnName) {
+    public static List<String> tokenize(String columnName) {
         String[] tokens = columnName.split("(?=\\p{Upper})");
         List<String> tokenList = new ArrayList<>();
         for (String token : tokens) {

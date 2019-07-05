@@ -35,7 +35,7 @@ public class HoPF {
     /**
      * The profiles of the input dataset.
      */
-    private DataProfiles dataProfiles; //Todo: need to instantiate
+    private DataProfiles dataProfiles = new DataProfiles();
 
     /**
      * The predicted primary keys and foreign keys.
@@ -46,9 +46,7 @@ public class HoPF {
 
     private Set<ForeignKeyFeature> foreignKeyFeatures;
 
-    public HoPF() {
-        dataProfiles = new DataProfiles();
-    }
+    public HoPF() {}
 
     /**
      * Execute the workflow of the {@link HoPF} algorithm.
@@ -121,8 +119,6 @@ public class HoPF {
         dataProfiles.readConstraints();
         uccInstances = dataProfiles.getUccs().stream().map(UniqueColumnCombinationInstance::new).collect(Collectors.toSet());
         indInstances = dataProfiles.getInds().stream().map(InclusionDependencyInstance::new).collect(Collectors.toSet());
-
-
     }
 
     private void loadFeatures() {
@@ -136,7 +132,7 @@ public class HoPF {
         this.primaryKeyFeatures.add(new AttributeValueLength(dataProfiles.getColumnStatistics())
         );
         this.primaryKeyFeatures.add(new AttributePosition(columns, uccInstancesByTable));
-        this.primaryKeyFeatures.add(new NameSuffix());
+        this.primaryKeyFeatures.add(new NameSuffix(columns));
 
         // load foreign key features
         this.foreignKeyFeatures = new HashSet<>();

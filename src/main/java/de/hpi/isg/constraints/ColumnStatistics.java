@@ -23,15 +23,13 @@ public class ColumnStatistics implements Constraint {
 
     private double average = Double.NaN;
 
-    private final int columnId;
+    private int columnId;
 
     private String columnName;
 
     private int tableId;
 
-    public ColumnStatistics(int columnId) {
-        this.columnId = columnId;
-    }
+    private String tableName;
 
     public long getNumNulls() {
         return numNulls;
@@ -149,6 +147,10 @@ public class ColumnStatistics implements Constraint {
         return this.columnId;
     }
 
+    public void setColumnId(int columnId) {
+        this.columnId = columnId;
+    }
+
     public String getColumnName() {
         return columnName;
     }
@@ -163,6 +165,14 @@ public class ColumnStatistics implements Constraint {
 
     public void setTableId(int tableId) {
         this.tableId = tableId;
+    }
+
+    public String getTableName() {
+        return tableName;
+    }
+
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
     }
 
     /**

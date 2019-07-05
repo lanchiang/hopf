@@ -16,7 +16,7 @@ public class EqualDepthBinningTest {
         Collection<?> data = Arrays.asList(dataArray);
 
         Binning binning = new EqualDepthBinning(data, 2);
-        binning.assignData();
+        binning.assignData(data);
 
         Assert.assertEquals(binning.getNumOfBins(), 2);
         Assert.assertEquals(binning.getDataType(), DataTypeSniffer.DataType.Numeric);
@@ -34,7 +34,7 @@ public class EqualDepthBinningTest {
         Collection<?> data = Arrays.asList(dataArray);
 
         Binning binning = new EqualDepthBinning(data, 2);
-        binning.assignData();
+        binning.assignData(data);
 
         Assert.assertEquals(binning.getNumOfBins(), 2);
         Assert.assertEquals(binning.getDataType(), DataTypeSniffer.DataType.Text);
