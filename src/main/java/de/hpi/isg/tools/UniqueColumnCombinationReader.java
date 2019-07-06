@@ -1,11 +1,10 @@
 package de.hpi.isg.tools;
 
+import de.hpi.isg.constraints.ColumnStatistics;
 import de.hpi.isg.constraints.UniqueColumnCombination;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Lan Jiang
@@ -20,6 +19,12 @@ public class UniqueColumnCombinationReader extends ProfileReader {
     private Map<String, String> columnMapping = new HashMap<>();
 
     private Set<UniqueColumnCombination> uccs = new HashSet<>();
+
+    private final Map<String, Integer> columnIdByTableColumnName = new HashMap<>();
+
+    public UniqueColumnCombinationReader(Set<ColumnStatistics> columnStatistics) {
+        columnStatistics.forEach(columnStat -> columnIdByTableColumnName.putIfAbsent(columnStat.getTableName()+TABLE_COLUMN_SEPARATOR+columnStat.getColumnName(), columnStat.getColumnId()));
+    }
 
     @Override
     public void processLine(String line) {
@@ -48,9 +53,19 @@ public class UniqueColumnCombinationReader extends ProfileReader {
             columnMapping.put(parts[1],parts[0]);
         } else if (isResultMapping) {
             String[] parts = line.split(CC_RESULT_SEPARATOR);
-            uccs.add(new UniqueColumnCombination(null)); // Todo: find a unique column id for these columns.
+            List<Integer> columnIdSet = Arrays.stream(parts).map(s -> {
+                String[] tableAndColumn = columnMapping.get(s).split(TABLE_COLUMN_SEPARATOR);
+                String tableName = tableMapping.get(tableAndColumn[0]);
+                return columnIdByTableColumnName.get(tableName + TABLE_COLUMN_SEPARATOR + tableAndColumn[1]);
+            }).sorted(Integer::compareTo).collect(Collectors.toList());
+            int[] unboxed = new int[columnIdSet.size()];
+            for (int i=0; i<columnIdSet.size(); i++) {
+                unboxed[i] = columnIdSet.get(i);
+            }
+
+            uccs.add(new UniqueColumnCombination(unboxed)); // Todo: find a unique column id for these columns.
         } else {
-            throw new RuntimeException(String.format("Could not process \"{}\".", line));
+            throw new RuntimeException("Could not process " + line);
         }
     }
 

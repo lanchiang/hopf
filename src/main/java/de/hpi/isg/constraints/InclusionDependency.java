@@ -1,6 +1,7 @@
 package de.hpi.isg.constraints;
 
 import de.hpi.isg.element.ColumnCombination;
+import de.hpi.isg.util.ReferenceUtils;
 import org.apache.commons.lang3.Validate;
 
 /**
@@ -18,6 +19,7 @@ public class InclusionDependency implements Constraint {
 
     public InclusionDependency(int[] dependentColumnIds, int[] referencedColumnIds) {
         Validate.isTrue(dependentColumnIds.length == referencedColumnIds.length);
+        Validate.isTrue(ReferenceUtils.isSorted(dependentColumnIds));
         this.lhs = new ColumnCombination(dependentColumnIds);
         this.rhs = new ColumnCombination(referencedColumnIds);
     }

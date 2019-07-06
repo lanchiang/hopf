@@ -17,7 +17,6 @@ public class ColumnStatisticsJsonReader extends ProfileReader {
 
     @Override
     public void processLine(String line) {
-        System.out.println(line);
         ColumnStatisticsJsonObject result = null;
         try {
             result = this.mapper.readValue(line, ColumnStatisticsJsonObject.class);

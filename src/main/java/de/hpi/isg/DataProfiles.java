@@ -44,6 +44,9 @@ public class DataProfiles {
     private static final String SCDP_PATH = PROFILE_PATH + File.separator + "Basic";
 
     public void readConstraints() {
+        // load single column data profiles
+        columnStatistics = loadSCDP(SCDP_PATH);
+
         // read uccs
         uccs = loadUccs(UCC_PATH);
 
@@ -55,9 +58,6 @@ public class DataProfiles {
 
         // read foreign keys
         foreignKeys = loadInds(FK_PATH);
-
-        // load single column data profiles
-        columnStatistics = loadSCDP(SCDP_PATH);
     }
 
     public Set<UniqueColumnCombination> getUccs() {
@@ -87,7 +87,7 @@ public class DataProfiles {
             throw new RuntimeException("No ucc file exists.");
         }
         for (File uccFile : uccFiles) {
-            UniqueColumnCombinationReader uccReader = new UniqueColumnCombinationReader();
+            UniqueColumnCombinationReader uccReader = new UniqueColumnCombinationReader(this.columnStatistics);
             try {
                 Files.lines(uccFile.toPath()).forEach(uccReader::processLine);
             } catch (IOException e) {
@@ -136,8 +136,8 @@ public class DataProfiles {
         }
 
         // generate column id and table id if needed.
-        Map<String, Set<ColumnStatistics>> columnstatisticsByTableName = scdps.stream().collect(Collectors.groupingBy(ColumnStatistics::getTableName, Collectors.toSet()));
-        columnstatisticsByTableName.forEach((s, columnStats) -> {
+        Map<String, Set<ColumnStatistics>> columnStatisticsByTableName = scdps.stream().collect(Collectors.groupingBy(ColumnStatistics::getTableName, Collectors.toSet()));
+        columnStatisticsByTableName.forEach((s, columnStats) -> {
             int tableId = (s.hashCode() & 0xfffffff);
             columnStats.forEach(columnStat -> {
                 columnStat.setTableId(tableId);
@@ -150,6 +150,8 @@ public class DataProfiles {
 
     public static void main(String[] args) {
         DataProfiles dataProfiles = new DataProfiles();
-        dataProfiles.loadSCDP(SCDP_PATH);
+        dataProfiles.columnStatistics = dataProfiles.loadSCDP(SCDP_PATH);
+        dataProfiles.loadUccs(UCC_PATH);
+        dataProfiles.loadInds(IND_PATH);
     }
 }
