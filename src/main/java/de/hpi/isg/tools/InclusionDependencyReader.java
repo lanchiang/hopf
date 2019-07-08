@@ -2,11 +2,9 @@ package de.hpi.isg.tools;
 
 import de.hpi.isg.constraints.ColumnStatistics;
 import de.hpi.isg.constraints.InclusionDependency;
-import de.hpi.isg.constraints.UniqueColumnCombination;
 import org.apache.commons.lang3.Validate;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author Lan Jiang
@@ -25,7 +23,7 @@ public class InclusionDependencyReader extends ProfileReader {
     private final Map<String, Integer> columnIdByTableColumnName = new HashMap<>();
 
     public InclusionDependencyReader(Set<ColumnStatistics> columnStatistics) {
-        columnStatistics.forEach(columnStat -> columnIdByTableColumnName.putIfAbsent(columnStat.getTableName()+TABLE_COLUMN_SEPARATOR+columnStat.getColumnName(), columnStat.getColumnId()));
+        columnStatistics.forEach(columnStat -> columnIdByTableColumnName.putIfAbsent(columnStat.getTableName() + TABLE_COLUMN_SEPARATOR + columnStat.getColumnName(), columnStat.getColumnId()));
     }
 
     @Override
@@ -59,8 +57,28 @@ public class InclusionDependencyReader extends ProfileReader {
             String[] rhs = parts[1].split(CC_RESULT_SEPARATOR);
             Validate.isTrue(lhs.length == rhs.length);
 
+            Map<Integer, Integer> lhsToRhs = new TreeMap<>();
 
-            inds.add(new InclusionDependency(null, null)); // Todo: find a unique column id for these columns.
+            for (int i = 0; i < lhs.length; i++) {
+                String[] tableIdAndColumnNameDependent = columnMapping.get(lhs[i]).split(TABLE_COLUMN_SEPARATOR);
+                String tableNameDep = tableMapping.get(tableIdAndColumnNameDependent[0]);
+                int dependentId = columnIdByTableColumnName.get(tableNameDep + TABLE_COLUMN_SEPARATOR + tableIdAndColumnNameDependent[1]);
+
+                String[] tableIdAndColumnNameReference = columnMapping.get(rhs[i]).split(TABLE_COLUMN_SEPARATOR);
+                String tableNameRef = tableMapping.get(tableIdAndColumnNameReference[0]);
+                int referenceId = columnIdByTableColumnName.get(tableNameRef + TABLE_COLUMN_SEPARATOR + tableIdAndColumnNameReference[1]);
+                lhsToRhs.putIfAbsent(dependentId, referenceId);
+            }
+
+            int[] dependentColumnIds = new int[lhs.length];
+            int[] referenceColumnIds = new int[rhs.length];
+            int i = 0;
+            for (Iterator<Integer> iterator = lhsToRhs.keySet().iterator(); iterator.hasNext(); i++) {
+                dependentColumnIds[i] = iterator.next();
+                referenceColumnIds[i] = lhsToRhs.get(dependentColumnIds[i]);
+            }
+
+            inds.add(new InclusionDependency(dependentColumnIds, referenceColumnIds)); // Todo: find a unique column id for these columns.
         } else {
             throw new RuntimeException("Could not process " + line);
         }

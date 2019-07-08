@@ -101,7 +101,7 @@ public class DataProfiles {
     private Set<InclusionDependency> loadInds(String path) {
         File indFile = new File(path);
 
-        InclusionDependencyReader indReader = new InclusionDependencyReader();
+        InclusionDependencyReader indReader = new InclusionDependencyReader(this.columnStatistics);
         try {
             Files.lines(indFile.toPath()).forEach(indReader::processLine);
         } catch (IOException e) {

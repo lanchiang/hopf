@@ -12,7 +12,7 @@ abstract public class ProfileReader {
     protected static final String TABLE_COLUMN_SEPARATOR = "\\.";
     protected static final String MAPPING_SEPARATOR = "\t";
     protected static final String CC_RESULT_SEPARATOR = ",";
-    protected static final String BELONGINGTO_MARKER = "[=";
+    protected static final String BELONGINGTO_MARKER = "\\[=";
 
     public abstract void processLine(String line);
 }

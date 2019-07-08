@@ -13,6 +13,11 @@ public class Table {
 
     private List<Column> columns;
 
+    public Table(int tableId, List<Column> columns) {
+        this.tableId = tableId;
+        this.columns = columns;
+    }
+
     public Column getColumnById(int id) {
         Optional<Column> optionalColumn = columns.stream().filter(column -> column.getColumnId()==id).findFirst();
         return optionalColumn.orElse(null);
