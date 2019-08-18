@@ -15,12 +15,9 @@ public class UniqueColumnCombinationReader extends ProfileReader {
     private boolean isColumnMapping = false;
     private boolean isResultMapping = false;
 
-    private Map<String, String> tableMapping = new HashMap<>();
     private Map<String, String> columnMapping = new HashMap<>();
 
     private Set<UniqueColumnCombination> uccs = new HashSet<>();
-
-    private final Map<String, Integer> columnIdByTableColumnName = new HashMap<>();
 
     private final Set<ColumnStatistics> columnStatistics;
 
@@ -30,7 +27,6 @@ public class UniqueColumnCombinationReader extends ProfileReader {
 
     public UniqueColumnCombinationReader(Set<ColumnStatistics> columnStatistics) {
         this.columnStatistics = columnStatistics;
-        columnStatistics.forEach(columnStat -> columnIdByTableColumnName.putIfAbsent(columnStat.getTableName() + TABLE_COLUMN_SEPARATOR + columnStat.getColumnName(), columnStat.getColumnId()));
     }
 
     @Override
@@ -54,7 +50,6 @@ public class UniqueColumnCombinationReader extends ProfileReader {
 
         if (isTableMapping) {
             String[] parts = line.split(MAPPING_SEPARATOR);
-            tableMapping.put(parts[1], parts[0]);
             String tableName = parts[0];
             Optional<ColumnStatistics> colStatByTableName = columnStatistics.stream().filter(colStat -> colStat.getTableName().equals(tableName)).findFirst();
 

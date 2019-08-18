@@ -15,12 +15,8 @@ public class ColumnCombination {
     @Getter
     private int tableId;
 
-    public ColumnCombination(int columnId) {
-        this(new int[]{columnId});
-    }
-
-    public ColumnCombination(int[] columnIds) {
-        this.columnIds = columnIds;
+    public ColumnCombination(int columnId, int tableId) {
+        this(new int[]{columnId}, tableId);
     }
 
     public ColumnCombination(int[] columnIds, int tableId) {

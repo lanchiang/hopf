@@ -1,5 +1,6 @@
 package de.hpi.isg.element;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.Collection;
@@ -9,12 +10,13 @@ import java.util.Optional;
 /**
  * @author Lan Jiang
  */
+@EqualsAndHashCode
 public class Table {
 
     @Getter
     private int tableId;
 
-    @Getter
+    @Getter @EqualsAndHashCode.Exclude
     private int[] columnIds;
 
     public Table(int tableId, int... columns) {
@@ -30,4 +32,6 @@ public class Table {
     public Column addColumn(String columnName) {
         return null;
     }
+
+
 }

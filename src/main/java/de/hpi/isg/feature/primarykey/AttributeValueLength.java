@@ -61,8 +61,6 @@ public class AttributeValueLength extends PrimaryKeyFeature {
                 columnMaxLength.putIfAbsent(columnId, valueString.length());
             } else if (longestStringValue != null) {
                 columnMaxLength.putIfAbsent(columnId, longestStringValue.length());
-            } else {
-                throw new RuntimeException("Cannot get the longest value length of column: " + columnId);
             }
         });
     }

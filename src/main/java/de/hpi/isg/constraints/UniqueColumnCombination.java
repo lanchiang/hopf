@@ -21,7 +21,7 @@ public class UniqueColumnCombination implements Constraint {
 
     public UniqueColumnCombination(int tableId, int... columnIds) {
         Validate.isTrue(ReferenceUtils.isSorted(columnIds));
-        this.columnCombination = new ColumnCombination(columnIds);
+        this.columnCombination = new ColumnCombination(columnIds, tableId);
 
         this.tableId = tableId;
     }

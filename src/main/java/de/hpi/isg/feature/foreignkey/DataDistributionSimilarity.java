@@ -31,6 +31,12 @@ public class DataDistributionSimilarity extends ForeignKeyFeature {
 
         Map<Integer, Binning> refColumnBinning = new HashMap<>();
         for (int refColumnId : refColumnIds) {
+            System.out.println(refColumnId);
+
+            if (refColumnId == 183817391) {
+                int stop = 0;
+            }
+
             List<Object> data = new LinkedList<>();
 
             Binning binning = new EqualWidthBinning(data, DataProfiles.BIN_NUMBER);
@@ -57,9 +63,12 @@ public class DataDistributionSimilarity extends ForeignKeyFeature {
             InclusionDependency inclusionDependency = indInstance.getInd();
             int[] depColumnIds = inclusionDependency.getLhs().getColumnIds();
             int[] refColumnIds = inclusionDependency.getRhs().getColumnIds();
+            int depTableId = inclusionDependency.getLhs().getTableId();
+            int refTableId = inclusionDependency.getRhs().getTableId();
+
             double score = 0;
             for (int i=0;i<depColumnIds.length;i++) {
-                score += unaryScore.get(new InclusionDependency(depColumnIds[i], refColumnIds[i]));
+                score += unaryScore.get(new InclusionDependency(depColumnIds[i], depTableId, refColumnIds[i], refTableId));
             }
             score /= (double)depColumnIds.length;
 
@@ -79,8 +88,11 @@ public class DataDistributionSimilarity extends ForeignKeyFeature {
         List<InclusionDependency> unaryInclusionDependencies = new ArrayList<>(inclusionDependency.getArity());
         final int[] depColumnIds = inclusionDependency.getLhs().getColumnIds();
         final int[] refColumnIds = inclusionDependency.getRhs().getColumnIds();
+        final int depColumnId = inclusionDependency.getLhs().getTableId();
+        final int refColumnId = inclusionDependency.getRhs().getTableId();
+
         for (int i = 0; i < inclusionDependency.getArity(); i++) {
-            unaryInclusionDependencies.add(new InclusionDependency(depColumnIds[i], refColumnIds[i]));
+            unaryInclusionDependencies.add(new InclusionDependency(depColumnIds[i], depColumnId, refColumnIds[i], refColumnId));
         }
         return unaryInclusionDependencies.stream();
     }

@@ -303,5 +303,8 @@ public class HoPF {
 
         @Parameter(names = "--profile-basic-path", description = "The path that specifies the folder of all data profiles.", required = true)
         protected String profileBasicPath;
+
+        @Parameter(names = "--data-path", description = "The path that specifies the folder of the dataset. Each table is sliced vertically into columns", required = true)
+        protected String dataPath;
     }
 }

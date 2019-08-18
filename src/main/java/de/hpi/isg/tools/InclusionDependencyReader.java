@@ -5,6 +5,7 @@ import de.hpi.isg.constraints.InclusionDependency;
 import org.apache.commons.lang3.Validate;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Lan Jiang
@@ -22,8 +23,12 @@ public class InclusionDependencyReader extends ProfileReader {
 
     private final Map<String, Integer> columnIdByTableColumnName = new HashMap<>();
 
+    private final Map<String, Integer> tableIdByTableName;
+
     public InclusionDependencyReader(Set<ColumnStatistics> columnStatistics) {
-        columnStatistics.forEach(columnStat -> columnIdByTableColumnName.putIfAbsent(columnStat.getTableName() + TABLE_COLUMN_SEPARATOR + columnStat.getColumnName(), columnStat.getColumnId()));
+        columnStatistics.forEach(columnStat -> columnIdByTableColumnName.putIfAbsent(columnStat.getTableName() +
+                TABLE_COLUMN_SEPARATOR + columnStat.getColumnName(), columnStat.getColumnId()));
+        tableIdByTableName = columnStatistics.stream().collect(Collectors.toMap(ColumnStatistics::getTableName, ColumnStatistics::getTableId, (tableId1, tableId2) -> tableId1));
     }
 
     @Override
@@ -70,6 +75,9 @@ public class InclusionDependencyReader extends ProfileReader {
                 lhsToRhs.putIfAbsent(dependentId, referenceId);
             }
 
+            int depTableId = tableIdByTableName.get(tableMapping.get(columnMapping.get(lhs[0]).split(TABLE_COLUMN_SEPARATOR)[0]));
+            int refTableId = tableIdByTableName.get(tableMapping.get(columnMapping.get(rhs[0]).split(TABLE_COLUMN_SEPARATOR)[0]));
+
             int[] dependentColumnIds = new int[lhs.length];
             int[] referenceColumnIds = new int[rhs.length];
             int i = 0;
@@ -78,7 +86,8 @@ public class InclusionDependencyReader extends ProfileReader {
                 referenceColumnIds[i] = lhsToRhs.get(dependentColumnIds[i]);
             }
 
-            inds.add(new InclusionDependency(dependentColumnIds, referenceColumnIds)); // Todo: find a unique column id for these columns.
+//            inds.add(new InclusionDependency(dependentColumnIds, referenceColumnIds));
+            inds.add(new InclusionDependency(dependentColumnIds, depTableId, referenceColumnIds, refTableId));
         } else {
             throw new RuntimeException("Could not process " + line);
         }
