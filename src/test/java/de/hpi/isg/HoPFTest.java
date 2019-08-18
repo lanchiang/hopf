@@ -10,7 +10,5 @@ public class HoPFTest {
 
     @Test
     public void testRun() {
-        HoPF algorithm = new HoPF();
-        algorithm.execute();
     }
 }

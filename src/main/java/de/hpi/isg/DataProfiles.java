@@ -9,9 +9,9 @@ import de.hpi.isg.tools.InclusionDependencyReader;
 import de.hpi.isg.tools.UniqueColumnCombinationReader;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -36,28 +36,40 @@ public class DataProfiles {
 
     public static final String DATA_PATH = "";
 
-    private static final String PROFILE_PATH = "/Users/Fuga/Documents/HPI/Data/tpc_h/profilings";
-    private static final String UCC_PATH = PROFILE_PATH + File.separator + "UCC";
-    private static final String PK_PATH = PROFILE_PATH + File.separator + "PK";
-    private static final String IND_PATH = PROFILE_PATH + File.separator + "IND.txt";
-    private static final String FK_PATH = PROFILE_PATH + File.separator + "FK.txt";
-    private static final String SCDP_PATH = PROFILE_PATH + File.separator + "Basic";
+    private final String uccPath;
+    private final String pkPath;
+    private final String indPath;
+    private final String fkPath;
+    private final String scdpPath;
 
+    public DataProfiles(final String profileBasicPath) {
+        // Todo: remove the local path dependency.
+
+        uccPath = profileBasicPath + File.separator + "UCC";
+        pkPath = profileBasicPath + File.separator + "PK";
+        indPath = profileBasicPath + File.separator + "IND.txt";
+        fkPath = profileBasicPath + File.separator + "FK.txt";
+        scdpPath = profileBasicPath + File.separator + "Basic";
+    }
+
+    /**
+     * Read various data profiles from files.
+     */
     public void readConstraints() {
         // load single column data profiles
-        columnStatistics = loadSCDP(SCDP_PATH);
+        columnStatistics = loadSCDP(scdpPath);
 
         // read uccs
-        uccs = loadUccs(UCC_PATH);
+        uccs = loadUccs(uccPath);
 
         // read primary keys
-        primaryKeys = loadUccs(PK_PATH);
+        primaryKeys = loadUccs(pkPath);
 
         // read inds
-        inds = loadInds(IND_PATH);
+        inds = loadInds(indPath);
 
         // read foreign keys
-        foreignKeys = loadInds(FK_PATH);
+        foreignKeys = loadInds(fkPath);
     }
 
     public Set<UniqueColumnCombination> getUccs() {
@@ -118,8 +130,6 @@ public class DataProfiles {
             throw new RuntimeException("No single column data profile file exists.");
         }
 
-
-
         for (File scdpFile : scdpFiles) {
             if (scdpFile.getName().equals(".DS_Store")) {
                 continue;
@@ -146,12 +156,5 @@ public class DataProfiles {
         });
 
         return scdps;
-    }
-
-    public static void main(String[] args) {
-        DataProfiles dataProfiles = new DataProfiles();
-        dataProfiles.columnStatistics = dataProfiles.loadSCDP(SCDP_PATH);
-        dataProfiles.loadUccs(UCC_PATH);
-        dataProfiles.loadInds(IND_PATH);
     }
 }

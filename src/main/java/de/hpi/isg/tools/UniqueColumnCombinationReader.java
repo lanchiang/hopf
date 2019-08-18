@@ -22,23 +22,30 @@ public class UniqueColumnCombinationReader extends ProfileReader {
 
     private final Map<String, Integer> columnIdByTableColumnName = new HashMap<>();
 
+    private final Set<ColumnStatistics> columnStatistics;
+
+    private Map<String, Integer> columnIdByColumnName;
+
+    private int tableId;
+
     public UniqueColumnCombinationReader(Set<ColumnStatistics> columnStatistics) {
+        this.columnStatistics = columnStatistics;
         columnStatistics.forEach(columnStat -> columnIdByTableColumnName.putIfAbsent(columnStat.getTableName() + TABLE_COLUMN_SEPARATOR + columnStat.getColumnName(), columnStat.getColumnId()));
     }
 
     @Override
     public void processLine(String line) {
-        if (line.startsWith(TABLE_MARKER)) {
+        if (TABLE_MARKER.startsWith(line)) {
             isTableMapping = true;
             isColumnMapping = false;
             isResultMapping = false;
             return;
-        } else if (line.startsWith(COLUMN_MARKER)) {
+        } else if (COLUMN_MARKER.startsWith(line)) {
             isTableMapping = false;
             isColumnMapping = true;
             isResultMapping = false;
             return;
-        } else if (line.startsWith(RESULT_MARKER)) {
+        } else if (RESULT_MARKER.startsWith(line)) {
             isTableMapping = false;
             isColumnMapping = false;
             isResultMapping = true;
@@ -48,22 +55,31 @@ public class UniqueColumnCombinationReader extends ProfileReader {
         if (isTableMapping) {
             String[] parts = line.split(MAPPING_SEPARATOR);
             tableMapping.put(parts[1], parts[0]);
+            String tableName = parts[0];
+            Optional<ColumnStatistics> colStatByTableName = columnStatistics.stream().filter(colStat -> colStat.getTableName().equals(tableName)).findFirst();
+
+            if (colStatByTableName.isPresent()) {
+                this.tableId = colStatByTableName.get().getTableId();
+            } else {
+                throw new RuntimeException("Cannot find the table id.");
+            }
+
+            this.columnIdByColumnName = this.columnStatistics.stream()
+                    .filter(colStat -> colStat.getTableName().equals(tableName))
+                    .collect(Collectors.toMap(ColumnStatistics::getColumnName, ColumnStatistics::getColumnId));
         } else if (isColumnMapping) {
             String[] parts = line.split(MAPPING_SEPARATOR);
             columnMapping.put(parts[1], parts[0]);
         } else if (isResultMapping) {
             String[] parts = line.split(CC_RESULT_SEPARATOR);
-            List<Integer> columnIdSet = Arrays.stream(parts).map(s -> {
-                String[] tableAndColumn = columnMapping.get(s).split(TABLE_COLUMN_SEPARATOR);
-                String tableName = tableMapping.get(tableAndColumn[0]);
-                return columnIdByTableColumnName.get(tableName + TABLE_COLUMN_SEPARATOR + tableAndColumn[1]);
-            }).sorted(Integer::compareTo).collect(Collectors.toList());
-            int[] unboxed = new int[columnIdSet.size()];
-            for (int i = 0; i < columnIdSet.size(); i++) {
-                unboxed[i] = columnIdSet.get(i);
-            }
 
-            uccs.add(new UniqueColumnCombination(unboxed));
+            List<Integer> columnIds = Arrays.stream(parts)
+                    .map(str -> {
+                        String[] tableAndColumn = columnMapping.get(str).split(TABLE_COLUMN_SEPARATOR);
+                        return this.columnIdByColumnName.get(tableAndColumn[1]);
+                    }).sorted(Integer::compareTo).collect(Collectors.toList());
+
+            uccs.add(new UniqueColumnCombination(tableId, columnIds.stream().mapToInt(Integer::intValue).toArray()));
         } else {
             throw new RuntimeException("Could not process " + line);
         }

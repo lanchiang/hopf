@@ -1,5 +1,6 @@
 package de.hpi.isg;
 
+import com.beust.jcommander.Parameter;
 import com.google.common.collect.Sets;
 import de.hpi.isg.constraints.ColumnStatistics;
 import de.hpi.isg.feature.foreignkey.AttributeNameSimilarity;
@@ -12,6 +13,7 @@ import de.hpi.isg.element.Column;
 import de.hpi.isg.element.InclusionDependencyInstance;
 import de.hpi.isg.element.Table;
 import de.hpi.isg.element.UniqueColumnCombinationInstance;
+import de.hpi.isg.util.JCommanderParser;
 
 import java.util.*;
 import java.util.function.Function;
@@ -35,7 +37,7 @@ public class HoPF {
     /**
      * The profiles of the input dataset.
      */
-    private DataProfiles dataProfiles = new DataProfiles();
+    private DataProfiles dataProfiles;
 
     /**
      * The predicted primary keys and foreign keys.
@@ -46,7 +48,9 @@ public class HoPF {
 
     private Set<ForeignKeyFeature> foreignKeyFeatures;
 
-    public HoPF() {}
+    public HoPF(Parameters parameters) {
+        this.dataProfiles = new DataProfiles(parameters.profileBasicPath);
+    }
 
     /**
      * Execute the workflow of the {@link HoPF} algorithm.
@@ -283,5 +287,21 @@ public class HoPF {
         }
 
         return pkOriginalScore + fkOriginalScore < pkReducedScore + fkReducedScore;
+    }
+
+    /**
+     * Entry of the program.
+     * @param args command line parameters.
+     */
+    public static void main(String[] args) {
+        HoPF.Parameters parameters = new HoPF.Parameters();
+        JCommanderParser.parseCommandLineAndExitOnError(parameters, args);
+        new HoPF(parameters).execute();
+    }
+
+    public static class Parameters {
+
+        @Parameter(names = "--profile-basic-path", description = "The path that specifies the folder of all data profiles.", required = true)
+        protected String profileBasicPath;
     }
 }

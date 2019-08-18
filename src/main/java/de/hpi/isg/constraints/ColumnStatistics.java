@@ -1,5 +1,8 @@
 package de.hpi.isg.constraints;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.List;
 
 /**
@@ -25,10 +28,12 @@ public class ColumnStatistics implements Constraint {
 
     private int columnId;
 
+    @Getter @Setter
     private String columnName;
 
     private int tableId;
 
+    @Getter @Setter
     private String tableName;
 
     public long getNumNulls() {
@@ -151,28 +156,12 @@ public class ColumnStatistics implements Constraint {
         this.columnId = columnId;
     }
 
-    public String getColumnName() {
-        return columnName;
-    }
-
-    public void setColumnName(String columnName) {
-        this.columnName = columnName;
-    }
-
     public int getTableId() {
         return tableId;
     }
 
     public void setTableId(int tableId) {
         this.tableId = tableId;
-    }
-
-    public String getTableName() {
-        return tableName;
-    }
-
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
     }
 
     /**

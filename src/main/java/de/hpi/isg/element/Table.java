@@ -1,5 +1,7 @@
 package de.hpi.isg.element;
 
+import lombok.Getter;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -9,27 +11,23 @@ import java.util.Optional;
  */
 public class Table {
 
+    @Getter
     private int tableId;
 
-    private List<Column> columns;
+    @Getter
+    private int[] columnIds;
 
-    public Table(int tableId, List<Column> columns) {
+    public Table(int tableId, int... columns) {
         this.tableId = tableId;
-        this.columns = columns;
+        this.columnIds = columns;
     }
 
-    public Column getColumnById(int id) {
-        Optional<Column> optionalColumn = columns.stream().filter(column -> column.getColumnId()==id).findFirst();
-        return optionalColumn.orElse(null);
-    }
-
-    public Collection<Column> getColumns() { return columns; }
+//    public Column getColumnById(int id) {
+//        Optional<Column> optionalColumn = columns.stream().filter(column -> column.getColumnId()==id).findFirst();
+//        return optionalColumn.orElse(null);
+//    }
 
     public Column addColumn(String columnName) {
         return null;
-    }
-
-    public int getTableId() {
-        return tableId;
     }
 }

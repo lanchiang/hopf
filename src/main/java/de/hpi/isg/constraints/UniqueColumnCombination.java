@@ -3,6 +3,7 @@ package de.hpi.isg.constraints;
 import de.hpi.isg.element.ColumnCombination;
 import de.hpi.isg.element.Table;
 import de.hpi.isg.util.ReferenceUtils;
+import lombok.Getter;
 import org.apache.commons.lang3.Validate;
 
 import java.util.Objects;
@@ -12,15 +13,17 @@ import java.util.Objects;
  */
 public class UniqueColumnCombination implements Constraint {
 
+    @Getter
     private final ColumnCombination columnCombination;
 
-    public UniqueColumnCombination(int[] columnIds) {
+    @Getter
+    private final int tableId;
+
+    public UniqueColumnCombination(int tableId, int... columnIds) {
         Validate.isTrue(ReferenceUtils.isSorted(columnIds));
         this.columnCombination = new ColumnCombination(columnIds);
-    }
 
-    public ColumnCombination getColumnCombination() {
-        return columnCombination;
+        this.tableId = tableId;
     }
 
     public int getArity() { return this.columnCombination.getColumnIds().length; }

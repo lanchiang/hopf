@@ -23,14 +23,13 @@ public class ForeignKeyPruningRules {
      */
     public static List<InclusionDependencyInstance> referenceToPrimaryKey(Set<InclusionDependencyInstance> inclusionDependencyInstances,
                                                                           List<UniqueColumnCombinationInstance> primaryKeys) {
-        List<InclusionDependencyInstance> foreignKeyCandidates = inclusionDependencyInstances.stream()
+        return inclusionDependencyInstances.stream()
                 .filter(inclusionDependencyInstance -> {
                     InclusionDependency inclusionDependency = inclusionDependencyInstance.getInd();
                     int[] refColumnIds = inclusionDependency.getRhs().getColumnIds();
-                    UniqueColumnCombination rhs = new UniqueColumnCombination(refColumnIds);
+                    UniqueColumnCombination rhs = new UniqueColumnCombination(inclusionDependency.getRhs().getTableId(), refColumnIds);
                     return primaryKeys.stream().map(UniqueColumnCombinationInstance::getUcc).anyMatch(ucc -> ucc.equals(rhs));
                 }).collect(Collectors.toList());
-        return foreignKeyCandidates;
     }
 
     // Todo

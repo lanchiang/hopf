@@ -1,5 +1,7 @@
 package de.hpi.isg.element;
 
+import lombok.Getter;
+
 import java.util.Arrays;
 
 /**
@@ -7,7 +9,11 @@ import java.util.Arrays;
  */
 public class ColumnCombination {
 
+    @Getter
     private final int[] columnIds;
+
+    @Getter
+    private int tableId;
 
     public ColumnCombination(int columnId) {
         this(new int[]{columnId});
@@ -17,8 +23,9 @@ public class ColumnCombination {
         this.columnIds = columnIds;
     }
 
-    public int[] getColumnIds() {
-        return columnIds;
+    public ColumnCombination(int[] columnIds, int tableId) {
+        this.columnIds = columnIds;
+        this.tableId = tableId;
     }
 
     @Override
