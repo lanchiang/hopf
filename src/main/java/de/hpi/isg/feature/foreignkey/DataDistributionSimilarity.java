@@ -32,11 +32,6 @@ public class DataDistributionSimilarity extends ForeignKeyFeature {
         Map<Integer, Binning> refColumnBinning = new HashMap<>();
         for (int refColumnId : refColumnIds) {
             System.out.println(refColumnId);
-
-            if (refColumnId == 183817391) {
-                int stop = 0;
-            }
-
             List<Object> data = new LinkedList<>();
 
             Binning binning = new EqualWidthBinning(data, DataProfiles.BIN_NUMBER);
@@ -46,6 +41,7 @@ public class DataDistributionSimilarity extends ForeignKeyFeature {
 
         Map<ColumnCombination, Set<InclusionDependency>> unaryIndsByLhs = unaryInclusionDependencies.stream()
                 .collect(Collectors.groupingBy(InclusionDependency::getLhs, Collectors.toSet()));
+
         unaryIndsByLhs.forEach((columnCombination, inds) -> {
             List<Object> lhsData = new LinkedList<>();
 

@@ -43,8 +43,6 @@ public class DataProfiles {
     private final String scdpPath;
 
     public DataProfiles(final String profileBasicPath) {
-        // Todo: remove the local path dependency.
-
         uccPath = profileBasicPath + File.separator + "UCC";
         pkPath = profileBasicPath + File.separator + "PK";
         indPath = profileBasicPath + File.separator + "IND.txt";
