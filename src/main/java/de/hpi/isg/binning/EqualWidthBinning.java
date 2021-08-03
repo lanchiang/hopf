@@ -17,12 +17,15 @@ public class EqualWidthBinning extends Binning {
 
     @Override
     protected void createBins() {
-        double width = (double) data.size() / (double) numOfBins;
         Set<Object> distinctData = new TreeSet<>(data);
 
         dataType = DataTypeSniffer.sniffDataType(distinctData);
         if (dataType == DataTypeSniffer.DataType.Numeric) {
-            List<Double> numerics = distinctData.parallelStream().map(element -> Double.parseDouble(element.toString())).collect(Collectors.toList());
+            double width = (double) distinctData.size() / (double) numOfBins;
+            List<Double> numerics = distinctData.parallelStream()
+                    .map(element -> Double.parseDouble(element.toString()))
+                    .sorted()
+                    .collect(Collectors.toList());
             for (int i = 0; i < numOfBins; i++) {
                 int lowerBound = (int) (i * width);
                 int higherBound = (int) ((i + 1) * width);
@@ -33,7 +36,11 @@ public class EqualWidthBinning extends Binning {
                 }
             }
         } else if (dataType == DataTypeSniffer.DataType.Text) {
-            List<String> strings = distinctData.stream().map(Object::toString).collect(Collectors.toList());
+            double width = (double) distinctData.size() / (double) numOfBins;
+            List<String> strings = distinctData.parallelStream()
+                    .map(Object::toString)
+                    .sorted()
+                    .collect(Collectors.toList());
             for (int i = 0; i < numOfBins; i++) {
                 int lower = (int) (width * i);
                 int higher = (int) (width * (i + 1));

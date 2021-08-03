@@ -1,34 +1,31 @@
 package de.hpi.isg.element;
 
+import lombok.Getter;
+
 /**
  * @author Lan Jiang
  */
 public class Column {
 
-    private int columnId;
+    @Getter
+    private final int columnId;
 
-    private String columnName;
-
-    public Column(int columnId, String columnName, int tableId) {
-        this.columnId = columnId;
-        this.columnName = columnName;
-        this.tableId = tableId;
-    }
+    @Getter
+    private final String columnName;
 
     /**
      * The table id of which this column belong to.
      */
-    private int tableId;
+    @Getter
+    private final int tableId;
 
-    public int getColumnId() {
-        return columnId;
-    }
+    @Getter
+    private final String tableName;
 
-    public String getColumnName() {
-        return columnName;
-    }
-
-    public int getTableId() {
-        return tableId;
+    public Column(int columnId, String columnName, int tableId, String tableName) {
+        this.columnId = columnId;
+        this.columnName = columnName;
+        this.tableId = tableId;
+        this.tableName = tableName;
     }
 }

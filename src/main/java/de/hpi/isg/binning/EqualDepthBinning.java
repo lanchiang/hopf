@@ -19,7 +19,6 @@ public class EqualDepthBinning extends Binning {
     protected void createBins() {
         dataType = DataTypeSniffer.sniffDataType(data);
 
-        float dataSize = data.size();
         if (dataType == DataTypeSniffer.DataType.Numeric) {
             List<Double> numerics = data.stream().map(tuple -> Double.parseDouble(tuple.toString())).sorted().collect(Collectors.toList());
             double base = numerics.get(0);
@@ -37,7 +36,6 @@ public class EqualDepthBinning extends Binning {
                 bin.setCount(count);
                 bins[i] = bin;
             }
-            numerics.clear();
         } else {
             List<String> strings = data.stream().map(Object::toString).collect(Collectors.toList());
             List<String> distinctStrings = strings.stream().distinct().sorted().collect(Collectors.toList());
@@ -58,8 +56,6 @@ public class EqualDepthBinning extends Binning {
                 bin.setCount(count);
                 bins[i] = bin;
             }
-            distinctStrings.clear();
-            strings.clear();
         }
     }
 }

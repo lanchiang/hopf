@@ -12,14 +12,11 @@ import java.util.Map;
  */
 public class UniqueColumnCombinationInstance {
 
-    @Getter
-    private Map<String, Object> featureVector;
-
     /**
      * The score of each individual feature.
      */
     @Getter
-    private Map<String, Double> featureScores;
+    private Map<String, Object> featureScores;
 
     /**
      * The underlying {@link UniqueColumnCombination}.
@@ -47,7 +44,6 @@ public class UniqueColumnCombinationInstance {
 
     public UniqueColumnCombinationInstance(UniqueColumnCombination ucc) {
         this.isPrimaryKey = Result.UNKNOWN;
-        this.featureVector = new HashMap<>();
         this.featureScores = new HashMap<>();
         this.ucc = ucc;
 

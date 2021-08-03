@@ -14,10 +14,10 @@ import java.util.Optional;
 public class Table {
 
     @Getter
-    private int tableId;
+    private final int tableId;
 
     @Getter @EqualsAndHashCode.Exclude
-    private int[] columnIds;
+    private final int[] columnIds;
 
     public Table(int tableId, int... columns) {
         this.tableId = tableId;

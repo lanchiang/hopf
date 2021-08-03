@@ -5,5 +5,5 @@ import java.io.Serializable;
 /**
  * @author Lan Jiang
  */
-interface Constraint extends Serializable {
+public interface Constraint extends Serializable {
 }

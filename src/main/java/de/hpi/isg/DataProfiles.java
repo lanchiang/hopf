@@ -7,14 +7,13 @@ import de.hpi.isg.tools.ColumnStatisticsJsonObject;
 import de.hpi.isg.tools.ColumnStatisticsJsonReader;
 import de.hpi.isg.tools.InclusionDependencyReader;
 import de.hpi.isg.tools.UniqueColumnCombinationReader;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -22,15 +21,23 @@ import java.util.stream.Collectors;
  */
 public class DataProfiles {
 
+    @Getter @Setter
     private Set<UniqueColumnCombination> uccs;
 
+    @Getter @Setter
     private Set<InclusionDependency> inds;
 
+    @Getter @Setter
     private Set<UniqueColumnCombination> primaryKeys;
 
+    @Getter @Setter
     private Set<InclusionDependency> foreignKeys;
 
+    @Getter @Setter
     private Set<ColumnStatistics> columnStatistics;
+
+    @Getter
+    private Set<Integer> tableIds = new HashSet<>();
 
     public static final int BIN_NUMBER = 20;
 
@@ -90,6 +97,12 @@ public class DataProfiles {
         return columnStatistics;
     }
 
+    public ColumnStatistics getStatByTableAndColumnName(String tableName, String columnName) {
+        Optional<ColumnStatistics> optionalColumnStatistics =
+                columnStatistics.stream().filter(colStat -> colStat.getTableName().equals(tableName) && colStat.getColumnName().equals(columnName)).findFirst();
+        return optionalColumnStatistics.orElse(null);
+    }
+
     private Set<UniqueColumnCombination> loadUccs(String path) {
         Set<UniqueColumnCombination> uccs = new HashSet<>();
         File[] uccFiles = new File(path).listFiles();
@@ -121,7 +134,7 @@ public class DataProfiles {
     }
 
     private Set<ColumnStatistics> loadSCDP(String path) {
-        Set<ColumnStatistics> scdps = new HashSet<>();
+        List<ColumnStatistics> scdps = new LinkedList<>();
 
         File[] scdpFiles = new File(path).listFiles();
         if (scdpFiles == null) {
@@ -134,25 +147,39 @@ public class DataProfiles {
             }
             ColumnStatisticsJsonReader scdpReader = new ColumnStatisticsJsonReader();
             try {
-                Files.lines(scdpFile.toPath()).forEach(scdpReader::processLine);
+                Files.lines(scdpFile.toPath()).forEachOrdered(scdpReader::processLine);
             } catch (IOException e) {
                 throw new RuntimeException("Could not parse " + scdpFile, e);
             }
-            Set<ColumnStatistics> partialSCDPs = scdpReader.getColumnStatisticsJsonObjects().stream()
-                    .map(ColumnStatisticsJsonObject::createColumnStatistics).collect(Collectors.toSet());
+            List<ColumnStatistics> partialSCDPs = scdpReader.getColumnStatisticsJsonObjects().stream()
+                    .map(ColumnStatisticsJsonObject::createColumnStatistics).collect(Collectors.toList());
             scdps.addAll(partialSCDPs);
         }
 
         // generate column id and table id if needed.
-        Map<String, Set<ColumnStatistics>> columnStatisticsByTableName = scdps.stream().collect(Collectors.groupingBy(ColumnStatistics::getTableName, Collectors.toSet()));
+        Map<String, List<ColumnStatistics>> columnStatisticsByTableName = scdps.stream().collect(Collectors.groupingBy(ColumnStatistics::getTableName, Collectors.toList()));
         columnStatisticsByTableName.forEach((s, columnStats) -> {
-            int tableId = (s.hashCode() & 0xfffffff);
+            int tableId;
+            do {
+                tableId = (s.hashCode() + new Random(System.currentTimeMillis()).nextInt()) & 0xfffffff;
+            } while (tableIds.contains(tableId));
+            tableIds.add(tableId);
+
+            int finalTableId = tableId;
             columnStats.forEach(columnStat -> {
-                columnStat.setTableId(tableId);
-                columnStat.setColumnId((columnStat.getColumnName().hashCode()) & 0xfffffff);
+                columnStat.setTableId(finalTableId);
+                int columnId;
+                int offset = 1;
+                do {
+                    columnId = finalTableId + offset;
+                    offset++;
+//                    columnId = (columnStat.getColumnName().hashCode() + new Random(System.currentTimeMillis()).nextInt()) & 0xfffffff;
+                } while (tableIds.contains(columnId));
+                tableIds.add(columnId);
+                columnStat.setColumnId(columnId);
             });
         });
 
-        return scdps;
+        return new HashSet<>(scdps);
     }
 }

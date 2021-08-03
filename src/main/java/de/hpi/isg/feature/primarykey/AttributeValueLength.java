@@ -68,13 +68,13 @@ public class AttributeValueLength extends PrimaryKeyFeature {
     @Override
     public void score(Collection<UniqueColumnCombinationInstance> uccInstances) {
         for (UniqueColumnCombinationInstance uccInstance : uccInstances) {
-            double concatencateScore = 0;
+            double score = 0;
             for (int columnId : uccInstance.getUcc().getColumnCombination().getColumnIds()) {
                 double length = columnMaxLength.get(columnId);
-                concatencateScore += (1 > (length - 7)) ? 1 : (1 / (length - 7));
+                score += (1 > (length - 7)) ? 1 : (1 / (length - 7));
             }
-            concatencateScore /= (double) uccInstance.getUcc().getArity();
-            uccInstance.getFeatureScores().putIfAbsent(getClass().getSimpleName(), concatencateScore);
+            score /= (double) uccInstance.getUcc().getArity();
+            uccInstance.getFeatureScores().putIfAbsent(getClass().getSimpleName(), score);
         }
 
         normalize(uccInstances);

@@ -50,11 +50,17 @@ public class JsonStatisticMap {
     @JsonProperty("Longest String")
     @Getter private StatisticValue<String> longestString;
 
+    @JsonProperty("Number of Tuples")
+    @Getter private StatisticValue<Integer> numOfTuples;
+
+    @JsonProperty("Entropy")
+    @Getter private StatisticValue<Double> entropy;
+
     @JsonProperty("Frequency Of Top 10 Frequent Items")
-    @Getter private TopItems<Integer> frequenciesOfItems;
+    @Getter private StatisticList<Integer> frequenciesOfItems;
 
     @JsonProperty("Top 10 frequent items")
-    @Getter private TopItems<String> mostFrequentItems;
+    @Getter private StatisticList<String> mostFrequentItems;
 
     public class StatisticValue<T> {
 
@@ -65,7 +71,7 @@ public class JsonStatisticMap {
         @Getter private T value;
     }
 
-    public class TopItems<T> {
+    public class StatisticList<T> {
 
         @JsonProperty("type")
         @Getter private String type;

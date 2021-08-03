@@ -1,20 +1,27 @@
-package de.hpi.isg;
+package de.hpi.isg.apps;
 
-import com.beust.jcommander.Parameter;
 import com.google.common.collect.Sets;
+import de.hpi.isg.DataProfiles;
+import de.hpi.isg.Result;
 import de.hpi.isg.constraints.ColumnStatistics;
+import de.hpi.isg.constraints.InclusionDependency;
+import de.hpi.isg.evaluation.Evaluator;
 import de.hpi.isg.feature.foreignkey.AttributeNameSimilarity;
 import de.hpi.isg.feature.foreignkey.DataDistributionSimilarity;
 import de.hpi.isg.feature.foreignkey.ForeignKeyFeature;
 import de.hpi.isg.feature.primarykey.*;
-import de.hpi.isg.pruning.ConflictRules;
+import de.hpi.isg.pruning.ConflictDetector;
 import de.hpi.isg.pruning.ForeignKeyPruningRules;
 import de.hpi.isg.element.Column;
 import de.hpi.isg.element.InclusionDependencyInstance;
 import de.hpi.isg.element.Table;
 import de.hpi.isg.element.UniqueColumnCombinationInstance;
+import de.hpi.isg.util.CSVSlicer;
 import de.hpi.isg.util.JCommanderParser;
+import de.hpi.isg.util.Parameters;
+import org.apache.commons.lang3.ArrayUtils;
 
+import java.io.File;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -40,7 +47,13 @@ public class HoPF {
     private DataProfiles dataProfiles;
 
     /**
+     * Map from relation.column name to the non-empty value list of it.
+     */
+    private Map<Integer, List<String>> dataSlices;
+
+    /**
      * The predicted primary keys and foreign keys.
+     * Todo: This should not be a member variable of this class
      */
     private Result result;
 
@@ -48,31 +61,113 @@ public class HoPF {
 
     private Set<ForeignKeyFeature> foreignKeyFeatures;
 
+    private final Parameters parameters;
+
     public HoPF(Parameters parameters) {
-        this.dataProfiles = new DataProfiles(parameters.profileBasicPath);
+        this.parameters = parameters;
+        this.dataProfiles = new DataProfiles(this.parameters.getProfileBasicPath());
     }
 
     /**
      * Execute the workflow of the {@link HoPF} algorithm.
-     *
      */
     public void execute() {
-        // load data profiles
-        loadDataProfiles();
+        // load data profiles into main memory
+//        DataProfileReader dataProfileReader = new DataProfileReader(this.parameters.getProfileBasicPath());
+//        DataProfiles dataProfiles = dataProfileReader.loadDataProfiles();
 
         // first prepare the data
+        prepareData();
+
         loadFeatures();
-        calScore();
+
+        calculateCandidateScore();
 
         // run the algorithm
         run();
+        int placeholder = 0;
 
-        // cleanup the execution?
+        // evaluate
+        if (this.parameters.isEvaluate()) {
+            Evaluator evaluator = new Evaluator();
+            evaluator.evaluate(this.result, this.dataProfiles.getPrimaryKeys(), this.dataProfiles.getForeignKeys());
+        } else {
+
+        }
+    }
+
+    private void prepareData() {
+        // load data profiles
+        loadDataProfiles();
+
+        // load data slices
+        loadDataSlices();
+
+//        indInstances = indInstances.stream().filter(indInstance -> {
+//            InclusionDependency ind = indInstance.getInd();
+//            long lhsEmptyColumnCount =
+//                    dataProfiles.getColumnStatistics().stream()
+//                            .filter(cs -> ArrayUtils.contains(ind.getLhs().getColumnIds(), cs.getColumnId()))
+//                            .filter(cs -> cs.getColumnValues().size() == 0).count();
+//            if (lhsEmptyColumnCount > 0) {
+//                return false;
+//            }
+//            long rhsEmptyColumnCount =
+//                    dataProfiles.getColumnStatistics().stream()
+//                            .filter(cs -> ArrayUtils.contains(ind.getRhs().getColumnIds(), cs.getColumnId()))
+//                            .filter(cs -> cs.getColumnValues().size() == 0).count();
+//            if (rhsEmptyColumnCount > 0) {
+//                return false;
+//            }
+//            return true;
+//        }).collect(Collectors.toSet());
+
+        indInstances = indInstances.stream().filter(indInstance -> {
+            InclusionDependency ind = indInstance.getInd();
+            return Arrays.stream(ind.getLhs().getColumnIds()).allMatch(id -> dataSlices.get(id).size() != 0)
+                    && Arrays.stream(ind.getRhs().getColumnIds()).allMatch(id -> dataSlices.get(id).size() != 0);
+        }).collect(Collectors.toSet());
+
+        return;
+    }
+
+    /**
+     * Construct primary key search space by calculating the Cartesian product of the sets of primary key candidates of all tables.
+     * Primary key candidate list of every table pruned by the cliff metric.
+     *
+     * @param uccInstancesByTable
+     * @return
+     */
+    private Set<List<UniqueColumnCombinationInstance>> createPrimaryKeyCombCandidates(
+            Map<Table, List<UniqueColumnCombinationInstance>> uccInstancesByTable) {
+        uccInstancesByTable.forEach((key, value) -> uccInstancesByTable.put(key, value.stream().sorted(Comparator.comparingDouble(UniqueColumnCombinationInstance::getScore).reversed()).collect(Collectors.toList())));
+        Map<Table, List<UniqueColumnCombinationInstance>> cut = pruneByCliff(uccInstancesByTable);
+        Set<List<UniqueColumnCombinationInstance>> pkcCandidates = new HashSet<>();
+        List<Table> tables = new ArrayList<>(cut.keySet());
+        bruteForcePrimaryKey(cut, tables, new ArrayList<>(), 0, pkcCandidates);
+        return pkcCandidates;
+    }
+
+    private void bruteForcePrimaryKey(Map<Table, List<UniqueColumnCombinationInstance>> uccInstancesByTable,
+                                      List<Table> tables,
+                                      List<UniqueColumnCombinationInstance> pathPK,
+                                      int depth,
+                                      Set<List<UniqueColumnCombinationInstance>> pkcCandidates) {
+        if (depth >= tables.size())
+            return;
+        for (UniqueColumnCombinationInstance uccInstance : uccInstancesByTable.get(tables.get(depth))) {
+            List<UniqueColumnCombinationInstance> currentPath = new ArrayList<>(pathPK);
+            currentPath.add(uccInstance);
+            bruteForcePrimaryKey(uccInstancesByTable, tables, currentPath, depth + 1, pkcCandidates);
+            if (depth == tables.size() - 1) {
+                pkcCandidates.add(currentPath);
+            }
+        }
     }
 
     private void run() {
         // get all pk combination candidates
-        Set<List<UniqueColumnCombinationInstance>> pkcCandidates = createPrimaryKeyCombinationCandidates(getUccInstancesByTable());
+        Set<List<UniqueColumnCombinationInstance>> pkcCandidates = createPrimaryKeyCombCandidates(getUccInstancesByTable());
 
         // treat each primary key candidate combinations as the true primary keys.
         for (List<UniqueColumnCombinationInstance> primaryKeys : pkcCandidates) {
@@ -87,20 +182,19 @@ public class HoPF {
             List<InclusionDependencyInstance> remainInclusionDependencies = new ArrayList<>(scoreOrderedIndInstances);
 
             // Define the conflict rules
-            ConflictRules conflictRules = new ConflictRules(null);
-            // Todo: Define the matrix for connectivity
+            ConflictDetector conflictDetector = new ConflictDetector(dataProfiles.getColumnStatistics());
 
             List<InclusionDependencyInstance> discarded = new LinkedList<>();
 
             // create predicted foreign key list
             while (!remainInclusionDependencies.isEmpty()) {
                 InclusionDependencyInstance foreignKeyInstanceCandidate = remainInclusionDependencies.get(0);
-                if (!conflictRules.circleConflict(foreignKeyInstanceCandidate)) {
-                    if (!ForeignKeyPruningRules.isPKBelongsToPK(foreignKeyInstanceCandidate)) {
+                if (!conflictDetector.detectCyclicReference(foreignKeyInstanceCandidate)) {
+                    if (!ForeignKeyPruningRules.isPKBelongsToPK(foreignKeyInstanceCandidate, primaryKeys, dataProfiles)) {
                         predictedForeignKeys.add(foreignKeyInstanceCandidate);
-                        conflictRules.addEdgeToColumnReferenceGraph(foreignKeyInstanceCandidate);
-                        if (conflictRules.getTableReferenceGraph().isConnected()) {
-                            conflictRules.getTableReferenceGraph().removeEdgeToTableReferenceGraph(foreignKeyInstanceCandidate);
+                        conflictDetector.addEdgeToColumnReferenceGraph(foreignKeyInstanceCandidate);
+                        if (conflictDetector.isSchemaConnected(foreignKeyInstanceCandidate)) {
+                            conflictDetector.removeEdgeFromTableReferenceGraph(foreignKeyInstanceCandidate);
                             break;
                         }
                     } else {
@@ -125,8 +219,25 @@ public class HoPF {
         indInstances = dataProfiles.getInds().stream().map(InclusionDependencyInstance::new).collect(Collectors.toSet());
     }
 
+    private void loadDataSlices() {
+        List<File> files = Arrays.stream(Objects.requireNonNull(new File(this.parameters.getDataPath()).listFiles()))
+                .filter(file -> !file.getName().equals(".DS_Store")).collect(Collectors.toList());
+        dataSlices = new HashMap<>();
+        files.forEach(file -> {
+            CSVSlicer csvSlicer = new CSVSlicer(file, this.parameters);
+            Map<String, List<String>> partialDataSlices = csvSlicer.generateDataSlices();
+            partialDataSlices.forEach((key, value) -> {
+                String[] splits = key.split("\\.");
+                String tableName = splits[0];
+                String columnName = splits[1];
+                int columnId = this.dataProfiles.getStatByTableAndColumnName(tableName, columnName).getColumnId();
+                dataSlices.putIfAbsent(columnId, value);
+            });
+        });
+    }
+
     private void loadFeatures() {
-        Map<Table, Set<UniqueColumnCombinationInstance>> uccInstancesByTable = getUccInstancesByTable();
+        Map<Table, List<UniqueColumnCombinationInstance>> uccInstancesByTable = getUccInstancesByTable();
         List<Column> columns = createColumns(dataProfiles.getColumnStatistics());
 
         // load primary key features
@@ -141,39 +252,82 @@ public class HoPF {
         // load foreign key features
         this.foreignKeyFeatures = new HashSet<>();
         this.foreignKeyFeatures.add(new AttributeNameSimilarity(columns));
-        this.foreignKeyFeatures.add(new DataDistributionSimilarity(indInstances, DataProfiles.DATA_PATH));
+        this.foreignKeyFeatures.add(new DataDistributionSimilarity(indInstances, dataSlices, this.parameters));
     }
 
     /**
-     * Calculate the feature score for each of the UCCs and INDs.
+     * Calculate the feature score for each UCC and IND.
      */
-    private void calScore() {
+    private void calculateCandidateScore() {
         // calculate UCC feature scores
         primaryKeyFeatures.forEach(primaryKeyFeature -> primaryKeyFeature.score(uccInstances));
         uccInstances.forEach(uccInstance -> {
-            double score = uccInstance.getFeatureScores().values().stream().mapToDouble(d -> d).sum() / (double) uccInstance.getFeatureScores().size();
+            double score = uccInstance.getFeatureScores().values().stream().mapToDouble(object -> Double.parseDouble(object.toString())).sum() / (double) uccInstance.getFeatureScores().size();
             uccInstance.setScore(score);
         });
 
         // calculate IND feature scores
         foreignKeyFeatures.forEach(foreignKeyFeature -> foreignKeyFeature.score(indInstances));
         indInstances.forEach(indInstance -> {
-            double score = indInstance.getFeatureScores().values().stream().mapToDouble(d -> d).sum() / (double) indInstance.getFeatureScores().size();
+            double score = indInstance.getFeatureScores().values().stream().mapToDouble(object -> Double.parseDouble(object.toString())).sum() / (double) indInstance.getFeatureScores().size();
             indInstance.setScore(score);
         });
     }
 
-    private Map<Table, Set<UniqueColumnCombinationInstance>> getUccInstancesByTable() {
-        return uccInstances.stream().collect(
+    private Map<Table, List<UniqueColumnCombinationInstance>> getUccInstancesByTable() {
+        Map<Table, List<UniqueColumnCombinationInstance>> uccInstancesByTable = uccInstances.stream().collect(
                 Collectors.groupingBy(
                         UniqueColumnCombinationInstance::getBelongedTable,
-                        Collectors.mapping(Function.identity(), Collectors.toSet())
+                        Collectors.mapping(Function.identity(), Collectors.toList())
                 )
         );
+        return uccInstancesByTable;
+    }
+
+    private Map<Table, List<UniqueColumnCombinationInstance>> pruneByCliff(Map<Table, List<UniqueColumnCombinationInstance>> uccInstancesByTable) {
+        final double eps = 0d;
+        double cliff;
+        int count;
+        for (Iterator<Map.Entry<Table, List<UniqueColumnCombinationInstance>>> iterator = uccInstancesByTable.entrySet().iterator();
+             iterator.hasNext(); ) {
+            cliff = eps;
+            count = 0;
+            Map.Entry<Table, List<UniqueColumnCombinationInstance>> next = iterator.next();
+            List<UniqueColumnCombinationInstance> scoreMap = next.getValue();
+            if (scoreMap.size() < 2) {
+                continue;
+            }
+            List<Double> scores = scoreMap.stream().map(UniqueColumnCombinationInstance::getScore).collect(Collectors.toList());
+            for (int i = 1; i < scores.size(); i++) {
+                if (scores.get(i - 1) - scores.get(i) > cliff) {
+                    cliff = scores.get(i - 1) - scores.get(i);
+                    count = i;
+                }
+            }
+
+            if (cliff == 0) {
+                uccInstancesByTable.put(next.getKey(), next.getValue());
+                continue;
+            }
+            List<UniqueColumnCombinationInstance> newScoreMap = new LinkedList<>();
+            int i = 0;
+            for (Iterator<UniqueColumnCombinationInstance> scoreIterator = scoreMap.iterator(); scoreIterator.hasNext(); ) {
+                if (i == count) {
+                    break;
+                }
+                UniqueColumnCombinationInstance nextScore = scoreIterator.next();
+                newScoreMap.add(nextScore);
+                i++;
+            }
+            uccInstancesByTable.put(next.getKey(), newScoreMap);
+        }
+        return uccInstancesByTable;
     }
 
     private List<Column> createColumns(Set<ColumnStatistics> columnStatistics) {
-        return columnStatistics.stream().map(colStat -> new Column(colStat.getColumnId(), colStat.getColumnName(), colStat.getTableId())).collect(Collectors.toList());
+        return columnStatistics.stream().map(colStat ->
+                new Column(colStat.getColumnId(), colStat.getColumnName(), colStat.getTableId(), colStat.getTableName()))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -199,7 +353,7 @@ public class HoPF {
         double fkGlobalScore;
         List<InclusionDependencyInstance> foreignKeys;
 
-        Result globalBestResult = this.result;
+        Result globalBestResult = (this.result != null) ? this.result : result;
         double pkGlobalScore = globalBestResult.getPrimaryKeys().stream().mapToDouble(UniqueColumnCombinationInstance::getScore).sum() / (double) globalBestResult.getPrimaryKeys().size();
 
         double fkReducedScore;
@@ -291,20 +445,12 @@ public class HoPF {
 
     /**
      * Entry of the program.
+     *
      * @param args command line parameters.
      */
     public static void main(String[] args) {
-        HoPF.Parameters parameters = new HoPF.Parameters();
+        Parameters parameters = new Parameters();
         JCommanderParser.parseCommandLineAndExitOnError(parameters, args);
         new HoPF(parameters).execute();
-    }
-
-    public static class Parameters {
-
-        @Parameter(names = "--profile-basic-path", description = "The path that specifies the folder of all data profiles.", required = true)
-        protected String profileBasicPath;
-
-        @Parameter(names = "--data-path", description = "The path that specifies the folder of the dataset. Each table is sliced vertically into columns", required = true)
-        protected String dataPath;
     }
 }

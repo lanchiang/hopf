@@ -12,13 +12,17 @@ import java.util.*;
  */
 public class AttributeNameSimilarity extends ForeignKeyFeature {
 
-    private final Map<Integer, List<String>> columnNameTokensByIndex;
+    private final Map<Integer, List<String>> tokensByIndex;
 
     private final Map<Integer, Integer> tableIdByColumnId;
 
     public AttributeNameSimilarity(List<Column> columns) {
-        this.columnNameTokensByIndex = new HashMap<>();
-        columns.forEach(column -> columnNameTokensByIndex.putIfAbsent(column.getColumnId(), StringUtils.tokenize(column.getColumnName())));
+        this.tokensByIndex = new HashMap<>();
+
+        columns.forEach(column -> {
+            tokensByIndex.putIfAbsent(column.getColumnId(), StringUtils.tokenize(column.getColumnName()));
+            tokensByIndex.putIfAbsent(column.getTableId(), StringUtils.tokenize(column.getTableName()));
+        });
 
         this.tableIdByColumnId = new HashMap<>();
         columns.forEach(column -> tableIdByColumnId.putIfAbsent(column.getColumnId(), column.getTableId()));
@@ -34,10 +38,10 @@ public class AttributeNameSimilarity extends ForeignKeyFeature {
 
             double overallScore = 0d;
             for (int i=0;i<depColumnIds.length;i++) {
-                List<String> depColumnTokens = new ArrayList<>(columnNameTokensByIndex.get(depColumnIds[i]));
-                List<String> refColumnTokens = new ArrayList<>(columnNameTokensByIndex.get(refColumnIds[i]));
-                List<String> depTableTokens = new ArrayList<>(columnNameTokensByIndex.get(depTableId));
-                List<String> refTableTokens = new ArrayList<>(columnNameTokensByIndex.get(refTableId));
+                List<String> depColumnTokens = new ArrayList<>(tokensByIndex.get(depColumnIds[i]));
+                List<String> refColumnTokens = new ArrayList<>(tokensByIndex.get(refColumnIds[i]));
+                List<String> depTableTokens = new ArrayList<>(tokensByIndex.get(depTableId));
+                List<String> refTableTokens = new ArrayList<>(tokensByIndex.get(refTableId));
 
                 depColumnTokens.addAll(depTableTokens);
                 refColumnTokens.addAll(refTableTokens);
@@ -55,7 +59,8 @@ public class AttributeNameSimilarity extends ForeignKeyFeature {
 
                 while (!refColumnTokens.isEmpty()) {
                     double maxRefTokenScore = 0d;
-                    int indexRefToken = 0, indexDepToken = 0, frequency;
+                    int indexRefToken = 0, indexDepToken = 0;
+                    double frequency;
                     String optimalRefToken = refColumnTokens.get(indexRefToken);
 
                     if (!depColumnTokens.isEmpty()) {
@@ -71,15 +76,15 @@ public class AttributeNameSimilarity extends ForeignKeyFeature {
                             }
                         }
                         final String thisRefToken = optimalRefToken;
-                        frequency = (int) columnNameTokensByIndex.entrySet().stream()
+                        frequency = tokensByIndex.entrySet().stream()
                                 .filter(entry -> entry.getValue().contains(thisRefToken)).count();
                         depColumnTokens.remove(indexDepToken);
                     } else {
                         final String thisRefToken = optimalRefToken;
-                        frequency = (int) columnNameTokensByIndex.entrySet().stream()
+                        frequency = tokensByIndex.entrySet().stream()
                                 .filter(entry -> entry.getValue().contains(thisRefToken)).count();
                     }
-                    frequency = frequency / columnNameTokensByIndex.size();
+                    frequency = frequency / tokensByIndex.size();
                     numerator += maxRefTokenScore * Math.log(1 / frequency);
                     denominator += Math.log(1 / frequency);
 
@@ -89,7 +94,7 @@ public class AttributeNameSimilarity extends ForeignKeyFeature {
                 double score = numerator / denominator;
                 overallScore += score;
             }
-            overallScore /= (double)depColumnIds.length;
+            overallScore /= depColumnIds.length;
 
             indInstance.getFeatureScores().putIfAbsent(getClass().getSimpleName(), overallScore);
         }

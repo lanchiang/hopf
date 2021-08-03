@@ -3,6 +3,7 @@ package de.hpi.isg.element;
 import lombok.Getter;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * @author Lan Jiang
@@ -29,11 +30,27 @@ public class ColumnCombination {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ColumnCombination that = (ColumnCombination) o;
-        return Arrays.equals(columnIds, that.columnIds);
+        return tableId == that.tableId &&
+                Arrays.equals(columnIds, that.columnIds);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(columnIds);
+        int result = Objects.hash(tableId);
+        result = 31 * result + Arrays.hashCode(columnIds);
+        return result;
     }
+
+    //    @Override
+//    public boolean equals(Object o) {
+//        if (this == o) return true;
+//        if (o == null || getClass() != o.getClass()) return false;
+//        ColumnCombination that = (ColumnCombination) o;
+//        return Arrays.equals(columnIds, that.columnIds);
+//    }
+//
+//    @Override
+//    public int hashCode() {
+//        return Arrays.hashCode(columnIds);
+//    }
 }

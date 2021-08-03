@@ -16,8 +16,11 @@ public class AttributePosition extends PrimaryKeyFeature {
 
     private Map<UniqueColumnCombinationInstance, Table> tableByUCC;
 
+    private List<Column> columns;
+
     public AttributePosition(List<Column> columns,
-                             final Map<Table, Set<UniqueColumnCombinationInstance>> uccInstancesByTable) {
+                             final Map<Table, List<UniqueColumnCombinationInstance>> uccInstancesByTable) {
+        this.columns = columns;
         this.tableByUCC = new HashMap<>();
         uccInstancesByTable.forEach((table, uccInstances) -> uccInstances.forEach(uccInstance -> this.tableByUCC.putIfAbsent(uccInstance, table)));
 
@@ -29,33 +32,55 @@ public class AttributePosition extends PrimaryKeyFeature {
 
     @Override
     public void score(Collection<UniqueColumnCombinationInstance> uccInstances) {
+        int columnId = columns.stream()
+                .filter(column -> column.getColumnName().equals("ProductKey") && column.getTableName().equals("DimProduct"))
+                .findFirst().get().getColumnId();
         for (UniqueColumnCombinationInstance uccInstance : uccInstances) {
+            if (uccInstance.getUcc().getArity() == 1 && uccInstance.getUcc().getColumnCombination().getColumnIds()[0] == columnId) {
+                int stop = 0;
+            }
             Table table = tableByUCC.get(uccInstance);
             List<Integer> columnIndex = orderedColumnIdByTableId.get(table.getTableId());
             int[] columnIds = uccInstance.getUcc().getColumnCombination().getColumnIds();
-            double left = 1 / (double) (left(columnIds, columnIndex));
-            double between = 1 / (double) (between(columnIds, columnIndex));
+            double left = 1 / left(columnIds, columnIndex);
+            double between = 1 / between(columnIds, columnIndex);
 
             double positionScore = (left + between) / 2;
             uccInstance.getFeatureScores().putIfAbsent(getClass().getSimpleName(), positionScore);
         }
 
-        normalize(uccInstances);
+//        normalize(uccInstances);
     }
 
-    private int left(int[] columnIds, List<Integer> columnIndex) {
-        int left = 1;
+    private double left(int[] columnIds, List<Integer> columnIndex) {
+        double left = 1;
+//        OptionalInt optionalMinColumnId = Arrays.stream(columnIds).map(IntUnaryOperator.identity()).min();
+//        if (!optionalMinColumnId.isPresent()) {
+//            throw new RuntimeException("Cannot find the smallest column id");
+//        }
+//        left += columnIndex.indexOf(optionalMinColumnId.getAsInt());
+
         for (int columnId : columnIds) {
             left += columnIndex.indexOf(columnId);
         }
-        return left;
+        return left / (double) columnIds.length;
     }
 
-    private int between(int[] columnIds, List<Integer> columnIndex) {
-        int between = 1;
+    private double between(int[] columnIds, List<Integer> columnIndex) {
+        double between = 1;
+//        OptionalInt optionalMinColumnId = Arrays.stream(columnIds).map(IntUnaryOperator.identity()).min();
+//        OptionalInt optionalMaxColumnId = Arrays.stream(columnIds).map(IntUnaryOperator.identity()).max();
+//        if (!optionalMaxColumnId.isPresent()) {
+//            throw new RuntimeException("Cannot find the biggest column id");
+//        }
+//        if (!optionalMinColumnId.isPresent()) {
+//            throw new RuntimeException("Cannot find the smallest column id");
+//        }
+//        between += columnIndex.indexOf(optionalMaxColumnId.getAsInt() - columnIndex.indexOf(optionalMinColumnId.getAsInt()));
+
         for (int i = 0; i < columnIds.length - 1; i++) {
             between += (columnIndex.indexOf(columnIds[i + 1]) - columnIndex.indexOf(columnIds[i]));
         }
-        return between;
+        return between / (double) columnIds.length;
     }
 }

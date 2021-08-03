@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -13,7 +15,7 @@ public class ColumnStatisticsJsonReader extends ProfileReader {
 
     private ObjectMapper mapper = new ObjectMapper();
 
-    private Set<ColumnStatisticsJsonObject> columnStatisticsJsonObjects = new HashSet<>();
+    private List<ColumnStatisticsJsonObject> columnStatisticsJsonObjects = new LinkedList<>();
 
     @Override
     public void processLine(String line) {
@@ -26,7 +28,7 @@ public class ColumnStatisticsJsonReader extends ProfileReader {
         columnStatisticsJsonObjects.add(result);
     }
 
-    public Set<ColumnStatisticsJsonObject> getColumnStatisticsJsonObjects() {
+    public List<ColumnStatisticsJsonObject> getColumnStatisticsJsonObjects() {
         return columnStatisticsJsonObjects;
     }
 }

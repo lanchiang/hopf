@@ -18,7 +18,7 @@ public class InclusionDependencyInstance {
     /**
      * Represents the feature vector of a instance.
      */
-    private Map<String, Double> featureScores;
+    private Map<String, Object> featureScores;
 
     private InclusionDependency ind;
 
@@ -30,7 +30,7 @@ public class InclusionDependencyInstance {
         this.ind = ind;
     }
 
-    public Map<String, Double> getFeatureScores() {
+    public Map<String, Object> getFeatureScores() {
         return featureScores;
     }
 

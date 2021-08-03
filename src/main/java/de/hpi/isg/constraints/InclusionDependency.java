@@ -4,6 +4,8 @@ import de.hpi.isg.element.ColumnCombination;
 import de.hpi.isg.util.ReferenceUtils;
 import org.apache.commons.lang3.Validate;
 
+import java.util.Objects;
+
 /**
  * @author Lan Jiang
  */
@@ -36,5 +38,19 @@ public class InclusionDependency implements Constraint {
 
     public int getArity() {
         return this.lhs.getColumnIds().length;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        InclusionDependency that = (InclusionDependency) o;
+        return Objects.equals(lhs, that.lhs) &&
+                Objects.equals(rhs, that.rhs);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(lhs, rhs);
     }
 }

@@ -1,0 +1,16 @@
+--profile-basic-path
+/Users/lan/Documents/hpi/projects/pk-fk-detection/data/AdventureWorkDW/profilings
+--data-path
+/Users/lan/Documents/hpi/projects/pk-fk-detection/data/AdventureWorkDW/data
+--delimiter
+\t
+--null-string
+NULL
+
+
+--profile-basic-path
+/Users/lan/Documents/hpi/projects/pk-fk-detection/data/tpc_e/profilings
+--data-path
+/Users/lan/Documents/hpi/projects/pk-fk-detection/data/tpc_e/data
+--delimiter
+;

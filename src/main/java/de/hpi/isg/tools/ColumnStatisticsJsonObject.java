@@ -21,6 +21,9 @@ public class ColumnStatisticsJsonObject {
     @JsonProperty("statisticMap")
     private JsonStatisticMap statisticMap;
 
+    @JsonProperty("data")
+    private Collection<String> columnData;
+
     public ColumnStatistics createColumnStatistics() {
         ColumnStatistics columnStatistics = new ColumnStatistics();
         columnStatistics.setColumnName(columnCombination.getColumnIdentifiers().get(0).getColumnIdentifier());
@@ -31,6 +34,8 @@ public class ColumnStatisticsJsonObject {
         columnStatistics.setNumNulls(statisticMap.getNumOfNull().getValue());
         columnStatistics.setFillStatus(statisticMap.getNullPercentage().getValue());
         columnStatistics.setUniqueness(statisticMap.getDistinctPercentage().getValue());
+
+        columnStatistics.setEntropy(statisticMap.getEntropy().getValue());
 
         if (Optional.ofNullable(statisticMap.getLongestString()).isPresent()) {
             columnStatistics.setLongestStringValue(statisticMap.getLongestString().getValue());
@@ -67,6 +72,8 @@ public class ColumnStatisticsJsonObject {
         }
 
         columnStatistics.setTopKFrequentValues(valueOccurrences);
+
+        columnStatistics.setColumnValues(columnData);
 
         return columnStatistics;
     }

@@ -15,6 +15,5 @@ public class AttributeCardinality extends PrimaryKeyFeature {
             int cardinality = uccInstance.getUcc().getArity();
             uccInstance.getFeatureScores().putIfAbsent(getClass().getSimpleName(), 1 / (double) cardinality);
         }
-        normalize(uccInstances);
     }
 }

@@ -3,6 +3,7 @@ package de.hpi.isg.constraints;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -25,6 +26,12 @@ public class ColumnStatistics implements Constraint {
     private double standardDeviation = Double.NaN;
 
     private double average = Double.NaN;
+
+    @Getter @Setter
+    private double entropy = Double.NaN;
+
+    @Getter @Setter
+    private Collection<String> columnValues;
 
     private int columnId;
 
